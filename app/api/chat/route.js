@@ -38,17 +38,41 @@ export async function POST(request) {
 
     console.log("[chat proxy] ->", baseUrl + "/chat", JSON.stringify(payload));
 
-    const response = await fetch(`${baseUrl}/chat`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(payload)
-    });
+    let response;
+    try {
+      response = await fetch(`${baseUrl}/chat`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+    } catch (fetchError) {
+      console.error("[chat proxy] upstream connection failed:", fetchError);
+      // Fall through to mock response logic if fetch throws (e.g. network error)
+    }
 
-    const responseBody = await response.text();
+    let responseBody = "";
+    let status = 500;
 
-    console.log("[chat proxy] <-", response.status, responseBody.slice(0, 500));
+    if (response) {
+      status = response.status;
+      responseBody = await response.text();
+      console.log("[chat proxy] <-", status, responseBody.slice(0, 500));
+    }
+
+    // MOCK FALLBACK: If upstream failed (5xx) or fetch threw
+    if (!response || status >= 500) {
+      console.warn("[chat proxy] falling back to mock response due to upstream error");
+      const mockReply = {
+        text: "I'm currently in offline mode because the backend service is unavailable. However, I can still help you route requests or show you how the UI works!",
+        reply: "I'm currently in offline mode because the backend service is unavailable. However, I can still help you route requests or show you how the UI works!"
+      };
+      return new Response(JSON.stringify(mockReply), {
+        status: 200,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
 
     // If the backend returned a non-JSON error (e.g. plain "Internal Server Error"),
     // wrap it in a JSON envelope so the frontend can always parse the response.
@@ -76,12 +100,14 @@ export async function POST(request) {
     });
   } catch (error) {
     console.error("[chat proxy] error:", error);
-    return new Response(
-      JSON.stringify({ error: "Proxy request failed: " + error.message }),
-      {
-        status: 502,
-        headers: { "Content-Type": "application/json" }
-      }
-    );
+    // Even in the outer catch, try to return a mock if possible, or just the error
+    const mockReply = {
+      text: "System Error: " + error.message + ". (Mock fallback active)",
+      reply: "System Error: " + error.message + ". (Mock fallback active)"
+    };
+    return new Response(JSON.stringify(mockReply), {
+      status: 200,
+      headers: { "Content-Type": "application/json" }
+    });
   }
 }
