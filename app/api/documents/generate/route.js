@@ -76,7 +76,7 @@ export async function POST(request) {
           countryName: template.name,
           data: {
             effectiveDate: now,
-            employerName: body.employerName || "Deriv (Demo Company)",
+            employerName: body.employerName || "WorkNest Inc.",
             employerAddress:
               body.employerAddress || "Cyberjaya, Selangor, Malaysia",
             employeeName: employee.fullName || "Employee",
@@ -146,7 +146,7 @@ export async function POST(request) {
           country,
           countryName: template.name,
           data: {
-            companyName: body.employerName || "Deriv (Demo Company)",
+            companyName: body.employerName || "WorkNest Inc.",
             companyState: template.name,
             companyAddress:
               body.employerAddress || "Cyberjaya, Selangor, Malaysia",

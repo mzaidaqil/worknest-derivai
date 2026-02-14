@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRef, useState } from "react";
+import { COMPLIANCE_DATA, EMPLOYEE_PROFILE } from "../lib/mockData";
 
 /* ═══════════════════════════════════════════════
    HELPERS
@@ -37,24 +38,15 @@ function fmtDateTime(d) {
    EMPLOYEE / OFFER / EQUITY DATA
    ═══════════════════════════════════════════════ */
 
-const EMPLOYEE = {
-  name: "Aiman Miller",
-  title: "Senior Product Designer",
-  id: "E-942",
-  department: "Product Team",
-  manager: "Sarah Chen",
-  location: "San Francisco, CA",
-  initials: "AM"
-};
-
 const EMP = {
-  employee_id: "SW01083541",
-  full_name: "Aiman Miller",
+  ...EMPLOYEE_PROFILE,
+  full_name: EMPLOYEE_PROFILE.name,
+  employee_id: EMPLOYEE_PROFILE.id,
   address: "No. 170, Taman Indah Baru 2, 71010, Port Dickson, Negeri Sembilan",
   country: "MY",
   location_city: "Cyberjaya",
-  role_title: "Software Engineer",
-  department: "Engineering"
+  role_title: EMPLOYEE_PROFILE.role,
+  initials: "AM"
 };
 
 const OFFER = {
@@ -72,7 +64,7 @@ const EQUITY = {
 };
 
 const EMPLOYER = {
-  name: "Deriv (Demo Company)",
+  name: "WorkNest Inc.",
   address: "Cyberjaya, Selangor, Malaysia",
   state: "Selangor"
 };
@@ -160,14 +152,23 @@ const VERSION_HISTORY = [
    PROFILE TABS
    ═══════════════════════════════════════════════ */
 
-const PROFILE_TABS = ["Overview", "Personal", "Leave", "Documents", "Compliance"];
+const PROFILE_TABS = ["Overview", "Documents", "Compliance"];
 
 /* ═══════════════════════════════════════════════
    MAIN COMPONENT
    ═══════════════════════════════════════════════ */
 
+/* ═══════════════════════════════════════════════
+   COMPLIANCE DATA (MOCK)
+   ═══════════════════════════════════════════════ */
+
+/* ═══════════════════════════════════════════════
+   COMPLIANCE DATA (MOCKED IN ../lib/mockData.js)
+   ═══════════════════════════════════════════════ */
+
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState("Documents");
+  const [checking, setChecking] = useState(false);
 
   // Document viewer state
   const [docView, setDocView] = useState("list"); // "list" | "versions" | document key
@@ -180,6 +181,27 @@ export default function ProfilePage() {
   const openDoc = (key) => setDocView(key);
   const backToList = () => setDocView("list");
 
+  const handleComplianceCheck = async () => {
+    setChecking(true);
+    try {
+      const res = await fetch("/api/cron/compliance-check", { method: "POST" });
+      const data = await res.json();
+
+      if (data.success) {
+        // Simple alert for demo (in production, use a toast component)
+        const actionSummary = data.actions.length > 0
+          ? "Actions taken:\n" + data.actions.join("\n")
+          : "No actions needed.";
+        alert("Compliance Check Complete!\n\n" + actionSummary);
+      }
+    } catch (err) {
+      console.error("Compliance check failed", err);
+      alert("Failed to run compliance check.");
+    } finally {
+      setChecking(false);
+    }
+  };
+
   return (
     <main className="shell">
       {/* ══════════ SIDEBAR ══════════ */}
@@ -190,31 +212,20 @@ export default function ProfilePage() {
         </div>
         <nav className="nav">
           <Link href="/" className="nav-item nav-link">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>
             Home
           </Link>
-          <Link href="/" className="nav-item nav-link">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <Link href="/assistant" className="nav-item nav-link">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
             Assistant
           </Link>
           <Link href="/profile" className="nav-item nav-link active">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
             Profile
           </Link>
         </nav>
         <div className="sidebar-footer">
-          <div className="view-mode">
-            <span>VIEW MODE</span>
-            <div className="view-mode-row">
-              <div className="view-mode-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
-              </div>
-              <div>
-                <strong>Employee View</strong>
-                <small>Restricted Access</small>
-              </div>
-            </div>
-          </div>
+
           <div className="user-chip">
             <div className="avatar">AM</div>
             <div>
@@ -222,7 +233,7 @@ export default function ProfilePage() {
               <span>Senior Designer</span>
             </div>
             <button className="logout-btn" type="button" aria-label="Sign out">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
             </button>
           </div>
         </div>
@@ -231,16 +242,15 @@ export default function ProfilePage() {
       <div className="content">
         {/* ── top bar ── */}
         <header className="topbar">
-          <div className="search">
-            <span className="search-icon">&#x2315;</span>
-            <input type="text" placeholder="Search policies, requests, documents..." aria-label="Search" />
+          <div className="search" style={{ visibility: "hidden" }}>
+            {/* Search removed */}
           </div>
           <div className="top-actions">
             <button className="icon-button" type="button">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
             </button>
             <button className="icon-button" type="button">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>
             </button>
             <div className="avatar small topbar-avatar">AM<span className="avatar-caret">&#x25BE;</span></div>
           </div>
@@ -248,7 +258,7 @@ export default function ProfilePage() {
 
         <div className="banner">
           <span className="shield">&#x1F6E1;&#xFE0F;</span>
-          Privacy &amp; Human Oversight: Sensitive changes require HR approval. AI drafts are for assistance only.
+          WorkNest Assistant can make mistakes. Check important info.
         </div>
 
         {/* ════════════ PROFILE CONTENT ════════════ */}
@@ -262,20 +272,20 @@ export default function ProfilePage() {
                   <span className="profile-online-dot" />
                 </div>
                 <div className="profile-info">
-                  <h1 className="profile-name">{EMPLOYEE.name}</h1>
-                  <p className="profile-title">{EMPLOYEE.title} &middot; ID: #{EMPLOYEE.id}</p>
+                  <h1 className="profile-name">{EMP.full_name}</h1>
+                  <p className="profile-title">{EMP.role} &middot; ID: #{EMP.id}</p>
                   <div className="profile-meta">
                     <span className="profile-meta-item">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
-                      {EMPLOYEE.department}
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2" /><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" /></svg>
+                      {EMP.department}
                     </span>
                     <span className="profile-meta-item">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                      Manager: {EMPLOYEE.manager}
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+                      Manager: Sarah Chen
                     </span>
                     <span className="profile-meta-item">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                      {EMPLOYEE.location}
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg>
+                      {EMP.location}
                     </span>
                   </div>
                 </div>
@@ -361,7 +371,7 @@ export default function ProfilePage() {
                     <div className="doc-viewer-toolbar">
                       <button className="btn-back" type="button" onClick={backToList}>&larr; Back to Documents</button>
                       <button className="btn-print" type="button" onClick={handlePrint}>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 6 2 18 2 18 9" /><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" /><rect x="6" y="14" width="12" height="8" /></svg>
                         Print / Save PDF
                       </button>
                     </div>
@@ -536,40 +546,134 @@ export default function ProfilePage() {
 
             {/* ──── Overview Tab ──── */}
             {activeTab === "Overview" && (
-              <div className="tab-placeholder">
-                <div className="empty-state">
-                  <h3>Employee Overview</h3>
-                  <p>Summary information, recent activity, and quick stats will appear here.</p>
+              <div className="overview-section" style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+
+                {/* 1. Simple Stats Cards */}
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px" }}>
+                  <div className="stat-card-simple" style={{ padding: "20px", background: "#fff", borderRadius: "12px", border: "1px solid #e2e8f0", boxShadow: "0 2px 5px rgba(0,0,0,0.05)" }}>
+                    <h4 style={{ margin: "0 0 8px 0", fontSize: "12px", color: "#64748b", textTransform: "uppercase" }}>Total Tenure</h4>
+                    <p style={{ margin: 0, fontSize: "24px", fontWeight: "700", color: "#0f172a" }}>2 Years</p>
+                    <small style={{ color: "#22c55e", fontSize: "12px" }}>+4 months this year</small>
+                  </div>
+                  <div className="stat-card-simple" style={{ padding: "20px", background: "#fff", borderRadius: "12px", border: "1px solid #e2e8f0", boxShadow: "0 2px 5px rgba(0,0,0,0.05)" }}>
+                    <h4 style={{ margin: "0 0 8px 0", fontSize: "12px", color: "#64748b", textTransform: "uppercase" }}>Leave Balance</h4>
+                    <p style={{ margin: 0, fontSize: "24px", fontWeight: "700", color: "#0f172a" }}>14 Days</p>
+                    <small style={{ color: "#64748b", fontSize: "12px" }}>Annual Leave remaining</small>
+                  </div>
+                  <div className="stat-card-simple" style={{ padding: "20px", background: "#fff", borderRadius: "12px", border: "1px solid #e2e8f0", boxShadow: "0 2px 5px rgba(0,0,0,0.05)" }}>
+                    <h4 style={{ margin: "0 0 8px 0", fontSize: "12px", color: "#64748b", textTransform: "uppercase" }}>Next Review</h4>
+                    <p style={{ margin: 0, fontSize: "24px", fontWeight: "700", color: "#0f172a" }}>Aug 15</p>
+                    <small style={{ color: "#3b82f6", fontSize: "12px" }}>In 6 months</small>
+                  </div>
                 </div>
+
+                {/* 2. Manager Note */}
+                <div style={{ padding: "20px", background: "#f8fafc", borderRadius: "12px", border: "1px dashed #cbd5e1" }}>
+                  <h3 style={{ marginTop: 0, fontSize: "16px", color: "#334155" }}>📝 Note from Manager</h3>
+                  <p style={{ margin: 0, fontSize: "14px", color: "#475569", lineHeight: "1.6" }}>
+                    "Aiman has been doing great work on the new design system. Let's aim to finalize the component library by Q2. Keep up the good work!"
+                  </p>
+                </div>
+
+                {/* 3. Recent Activity */}
+                <div style={{ background: "#fff", borderRadius: "16px", padding: "24px", border: "1px solid #e2e8f0" }}>
+                  <h3 style={{ marginTop: 0, marginBottom: "16px", fontSize: "16px", color: "#0f172a" }}>Recent Activity</h3>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                    <div style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
+                      <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#3b82f6", marginTop: "6px" }} />
+                      <div>
+                        <p style={{ margin: "0 0 4px 0", fontSize: "14px", fontWeight: "600", color: "#334155" }}>Document Signed</p>
+                        <p style={{ margin: 0, fontSize: "13px", color: "#64748b" }}>You signed "NDA Agreement v2.0"</p>
+                        <small style={{ color: "#94a3b8", fontSize: "11px" }}>2 days ago</small>
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
+                      <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#22c55e", marginTop: "6px" }} />
+                      <div>
+                        <p style={{ margin: "0 0 4px 0", fontSize: "14px", fontWeight: "600", color: "#334155" }}>Training Completed</p>
+                        <p style={{ margin: 0, fontSize: "13px", color: "#64748b" }}>Finished "Code of Conduct" module</p>
+                        <small style={{ color: "#94a3b8", fontSize: "11px" }}>1 week ago</small>
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
+                      <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#f59e0b", marginTop: "6px" }} />
+                      <div>
+                        <p style={{ margin: "0 0 4px 0", fontSize: "14px", fontWeight: "600", color: "#334155" }}>Leave Request</p>
+                        <p style={{ margin: 0, fontSize: "13px", color: "#64748b" }}>Requested 3 days off for March</p>
+                        <small style={{ color: "#94a3b8", fontSize: "11px" }}>2 weeks ago</small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
               </div>
             )}
 
-            {/* ──── Personal Tab ──── */}
-            {activeTab === "Personal" && (
-              <div className="tab-placeholder">
-                <div className="empty-state">
-                  <h3>Personal Information</h3>
-                  <p>Contact details, emergency contacts, and personal records will appear here.</p>
-                </div>
-              </div>
-            )}
 
-            {/* ──── Leave Tab ──── */}
-            {activeTab === "Leave" && (
-              <div className="tab-placeholder">
-                <div className="empty-state">
-                  <h3>Leave Balance</h3>
-                  <p>Leave balances, history, and upcoming time off will appear here.</p>
-                </div>
-              </div>
-            )}
 
             {/* ──── Compliance Tab ──── */}
             {activeTab === "Compliance" && (
-              <div className="tab-placeholder">
-                <div className="empty-state">
-                  <h3>Compliance &amp; Training</h3>
-                  <p>Compliance certifications, mandatory trainings, and deadlines will appear here.</p>
+              <div className="compliance-section">
+
+                {/* Expiration Tracking */}
+                <div className="compliance-card">
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <h3 style={{ margin: 0 }}>Expiration Tracking</h3>
+                    <button
+                      className="btn-outline"
+                      onClick={handleComplianceCheck}
+                      disabled={checking}
+                      style={{ padding: "4px 8px", fontSize: "12px" }}
+                    >
+                      {checking ? "Checking..." : "Run Compliance Check"}
+                    </button>
+                  </div>
+                  <div className="compliance-list">
+                    {COMPLIANCE_DATA.expirations.map((item, idx) => (
+                      <div key={idx} className={`compliance-item ${item.status}`}>
+                        <div className="compliance-item-info">
+                          <strong>{item.type}</strong>
+                          <span className="expiry-date">Expires: {fmtDate(item.expiry)}</span>
+                        </div>
+                        <span className={`status-badge ${item.status}`}>{item.daysLeft} days left</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="compliance-grid">
+                  {/* Mandatory Training */}
+                  <div className="compliance-card">
+                    <h3>Mandatory Training</h3>
+                    <div className="training-list">
+                      {COMPLIANCE_DATA.trainings.map((t, idx) => (
+                        <div key={idx} className="training-item-simple">
+                          <div className="training-info-simple">
+                            <strong>{t.module}</strong>
+                            <small>Due: {fmtDate(t.deadline)}</small>
+                          </div>
+                          <span className="training-status-text">{t.status}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Audit Readiness */}
+                  <div className="compliance-card">
+                    <h3>Audit Readiness</h3>
+                    <div className="audit-list">
+                      {COMPLIANCE_DATA.audit_docs.map((doc, idx) => (
+                        <div key={idx} className="audit-item">
+                          <div className="audit-icon">&#x1F4C1;</div>
+                          <div className="audit-info">
+                            <strong>{doc.name}</strong>
+                            <small>{fmtDate(doc.date)} &middot; {doc.size}</small>
+                          </div>
+                          <button className="btn-download" type="button">&#x2913;</button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
             )}

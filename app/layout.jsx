@@ -1,8 +1,8 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "Masderiv Chatbot",
-  description: "End-to-end chatbot interface"
+  title: "WorkNest Assistant",
+  description: "AI-powered HR assistant",
 };
 
 export default function RootLayout({ children }) {

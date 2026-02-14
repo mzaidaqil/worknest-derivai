@@ -9,11 +9,11 @@ import { createContext, useContext, useState, useCallback } from "react";
 const INITIAL_EMPLOYEE = {
   employee_id: "SW01083541",
   full_name: "Aiman Miller",
-  title: "Senior Product Designer",
+  title: "Senior Designer",
   initials: "AM",
   department: "Product Team",
   manager: "Sarah Chen",
-  role_title: "Software Engineer",
+  role_title: "Senior Designer",
   // Address fields
   address: "No. 170, Taman Indah Baru 2, 71010, Port Dickson, Negeri Sembilan",
   address_line1: "No. 170, Taman Indah Baru 2",
@@ -40,7 +40,7 @@ const INITIAL_EQUITY = {
 };
 
 const INITIAL_EMPLOYER = {
-  name: "Deriv (Demo Company)",
+  name: "WorkNest Inc.",
   address: "Cyberjaya, Selangor, Malaysia",
   state: "Selangor"
 };
@@ -56,7 +56,7 @@ export function EmployeeDataProvider({ children }) {
   const [offer, setOffer] = useState(INITIAL_OFFER);
   const [equity, setEquity] = useState(INITIAL_EQUITY);
   const [employer, setEmployer] = useState(INITIAL_EMPLOYER);
-  
+
   // Track address change history
   const [addressHistory, setAddressHistory] = useState([
     {
